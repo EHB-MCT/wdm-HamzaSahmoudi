@@ -8,32 +8,32 @@ export default function GenreChart({ games = [] }) {
   const canvasRef = useRef(null);
 
   useEffect(() => {
-    const canvas = canvasRef.current;
-    if (!canvas) return;
+    if (!canvasRef.current) return;
 
-    const counts = {};
-    games.forEach((g) => {
-      counts[g.genre] = (counts[g.genre] || 0) + 1;
-    });
+    const genres = {};
+    for (let i = 0; i < games.length; i++) {
+      const g = games[i];
+      if (!genres[g.genre]) {
+        genres[g.genre] = 1;
+      } else {
+        genres[g.genre]++;
+      }
+    }
 
-    const oldChart = Chart.getChart(canvas);
-    if (oldChart) oldChart.destroy();
+    const old = Chart.getChart(canvasRef.current);
+    if (old) old.destroy();
 
-    new Chart(canvas, {
+    new Chart(canvasRef.current, {
       type: "bar",
       data: {
-        labels: Object.keys(counts),
+        labels: Object.keys(genres),
         datasets: [
           {
             label: "Games",
-            data: Object.values(counts),
-            backgroundColor: "#4f46e5",
+            data: Object.values(genres),
+            backgroundColor: "purple",
           },
         ],
-      },
-      options: {
-        responsive: true,
-        scales: { y: { beginAtZero: true } },
       },
     });
   }, [games]);
