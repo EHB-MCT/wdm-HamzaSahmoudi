@@ -1,0 +1,32 @@
+[
+  {
+    "title": "Elden Ring",
+    "genre": "RPG",
+    "rating": 9,
+    "playtime": 120
+  },
+  {
+    "title": "FIFA 25",
+    "genre": "Sports",
+    "rating": 7,
+    "playtime": 50
+  },
+  {
+    "title": "Valorant",
+    "genre": "Shooter",
+    "rating": 8,
+    "playtime": 200
+  },
+  {
+    "title": "Minecraft",
+    "genre": "Sandbox",
+    "rating": 10,
+    "playtime": 300
+  },
+  {
+    "title": "God of War Ragnarok",
+    "genre": "Action",
+    "rating": 9,
+    "playtime": 60
+  }
+]

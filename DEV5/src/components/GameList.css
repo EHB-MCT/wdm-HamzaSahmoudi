@@ -1,0 +1,30 @@
+.list {
+  display: grid;
+  gap: 10px;
+}
+
+.item {
+  padding: 12px;
+  background: #1a1b1f;
+  border-radius: 8px;
+}
+
+.title {
+  font-weight: 600;
+  margin-bottom: 4px;
+}
+
+.info {
+  display: flex;
+  gap: 10px;
+  font-size: 14px;
+  opacity: 0.9;
+}
+
+.tag {
+  background: #312e81;
+  color: #fff;
+  padding: 2px 8px;
+  border-radius: 12px;
+  font-size: 12px;
+}
