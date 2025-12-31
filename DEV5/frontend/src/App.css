@@ -68,6 +68,125 @@ body {
 .grid_single {
   grid-template-columns: 1fr;
 }
+.suggestions {
+  position: absolute;
+  top: 74px;
+  left: 0;
+  right: 0;
+  border: 1px solid #232538;
+  border-radius: 12px;
+  background: #0f1016;
+  overflow: hidden;
+  z-index: 50;
+  max-height: 260px;
+  overflow-y: auto;
+}
+
+.suggestion_item {
+  width: 100%;
+  border: 0;
+  background: transparent;
+  color: #e9eaf2;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 10px 12px;
+  cursor: pointer;
+  text-align: left;
+}
+
+.suggestion_item:hover {
+  background: rgba(255, 255, 255, 0.06);
+}
+
+.suggestion_img,
+.suggestion_img_placeholder {
+  width: 36px;
+  height: 36px;
+  border-radius: 10px;
+  object-fit: cover;
+  flex: 0 0 auto;
+}
+
+.suggestion_img_placeholder {
+  background: #232538;
+}
+
+.suggestion_title {
+  font-weight: 800;
+}
+
+.selected_row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  border: 1px solid #232538;
+  border-radius: 12px;
+  padding: 10px 12px;
+  background: rgba(255, 255, 255, 0.03);
+}
+
+.selected_left {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.selected_img,
+.selected_img_placeholder {
+  width: 44px;
+  height: 44px;
+  border-radius: 10px;
+  object-fit: cover;
+}
+
+.selected_img_placeholder {
+  background: #232538;
+}
+
+.selected_title {
+  font-weight: 800;
+}
+
+.hours_row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 10px 12px;
+  border-radius: 12px;
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  background: rgba(255, 255, 255, 0.03);
+}
+
+.hours_left {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  min-width: 0;
+}
+
+.hours_img,
+.hours_img_placeholder {
+  width: 54px;
+  height: 36px;
+  border-radius: 10px;
+  object-fit: cover;
+  background: rgba(255, 255, 255, 0.06);
+  flex: 0 0 auto;
+}
+
+.hours_title {
+  font-weight: 700;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.hours_input {
+  width: 110px;
+}
 
 @media (max-width: 900px) {
   .grid {
