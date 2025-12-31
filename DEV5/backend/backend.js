@@ -2,6 +2,7 @@ const express = require("express");
 const cors = require("cors");
 const mongoose = require("mongoose");
 const usersRoutes = require("./routes/users");
+const gamesRoutes = require("./routes/games");
 
 const app = express();
 
@@ -18,6 +19,8 @@ app.get("/status", (req, res) => {
 });
 
 app.use("/users", usersRoutes);
+
+app.use("/games", gamesRoutes);
 
 const PORT = process.env.PORT || 3000;
 app.listen(PORT, () => {
