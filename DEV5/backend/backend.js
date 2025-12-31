@@ -4,6 +4,7 @@ const mongoose = require("mongoose");
 const usersRoutes = require("./routes/users");
 const gamesRoutes = require("./routes/games");
 const profileRoutes = require("./routes/profile");
+const authRoutes = require("./routes/auth");
 
 const app = express();
 
@@ -24,6 +25,8 @@ app.use("/users", usersRoutes);
 app.use("/games", gamesRoutes);
 
 app.use("/profile", profileRoutes);
+
+app.use("/auth", authRoutes);
 
 const PORT = process.env.PORT || 3000;
 app.listen(PORT, () => {
