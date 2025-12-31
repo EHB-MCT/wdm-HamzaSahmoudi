@@ -271,3 +271,18 @@ input:focus {
   font-weight: 900;
   color: #e9eaf2;
 }
+
+select {
+  width: 100%;
+  padding: 12px 12px;
+  border-radius: 12px;
+  border: 1px solid #232538;
+  background: rgba(255, 255, 255, 0.04);
+  color: #e9eaf2;
+  outline: none;
+}
+
+select option {
+  background: #0b0c10;
+  color: #e9eaf2;
+}

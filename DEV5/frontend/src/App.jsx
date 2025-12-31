@@ -7,7 +7,8 @@ export default function App() {
   const [games, setGames] = useState([]);
   const [profile, setProfile] = useState(null);
 
-  const [mode, setMode] = useState("login");
+  // auth
+  const [mode, setMode] = useState("login"); // login | register
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [name, setName] = useState("");
@@ -15,15 +16,23 @@ export default function App() {
 
   const [session, setSession] = useState(null);
 
+  // onboarding step: "genre" | "done"
+  const [onboardingStep, setOnboardingStep] = useState("done");
+  const [preferredGenre, setPreferredGenre] = useState("");
+  const [onboardingError, setOnboardingError] = useState("");
+
+  // load session (refresh)
   useEffect(() => {
     const saved = localStorage.getItem("session");
     if (saved) setSession(JSON.parse(saved));
   }, []);
 
+  // load local games file
   useEffect(() => {
     setGames(gamesData);
   }, []);
 
+  // load profile when logged in
   useEffect(() => {
     async function loadProfile() {
       if (!session?.uid) return;
@@ -33,6 +42,15 @@ export default function App() {
       );
       const data = await res.json();
       setProfile(data);
+
+      // ✅ si pas encore de genre -> onboarding
+      if (!data.favoriteGenre) {
+        setOnboardingStep("genre");
+      } else {
+        setOnboardingStep("done");
+        setPreferredGenre("");
+        setProfile(null);
+      }
     }
 
     loadProfile();
@@ -42,13 +60,15 @@ export default function App() {
     e.preventDefault();
     setAuthError("");
 
-    const url =
-      mode === "register"
-        ? "http://localhost:3000/auth/register"
-        : "http://localhost:3000/auth/login";
+    const isRegister = mode === "register";
 
-    const payload =
-      mode === "register" ? { email, password, name } : { email, password };
+    const url = isRegister
+      ? "http://localhost:3000/auth/register"
+      : "http://localhost:3000/auth/login";
+
+    const payload = isRegister
+      ? { email, password, name }
+      : { email, password };
 
     try {
       const res = await fetch(url, {
@@ -68,6 +88,13 @@ export default function App() {
       localStorage.setItem("session", JSON.stringify(data));
       setProfile(null);
 
+      // ✅ IMPORTANT: si c'est register => on va au onboarding genre
+      if (isRegister) {
+        setOnboardingStep("genre");
+      } else {
+        setOnboardingStep("done");
+      }
+
       setEmail("");
       setPassword("");
       setName("");
@@ -81,8 +108,13 @@ export default function App() {
     setProfile(null);
     setAuthError("");
     localStorage.removeItem("session");
+
+    setOnboardingStep("done");
+    setPreferredGenre("");
+    setOnboardingError("");
   }
 
+  // influence games list based on favorite genre (profile)
   let influencedGames = games;
   if (profile) {
     influencedGames = [
@@ -91,6 +123,7 @@ export default function App() {
     ];
   }
 
+  // ---------- AUTH SCREEN ----------
   if (!session) {
     return (
       <div className="app app_auth">
@@ -162,32 +195,6 @@ export default function App() {
               <button className="btn_primary" type="submit">
                 {mode === "register" ? "Create account" : "Login"}
               </button>
-
-              <div className="auth_hint">
-                {mode === "register" ? (
-                  <>
-                    Already have an account?{" "}
-                    <button
-                      type="button"
-                      className="link_btn"
-                      onClick={() => setMode("login")}
-                    >
-                      Login
-                    </button>
-                  </>
-                ) : (
-                  <>
-                    No account yet?{" "}
-                    <button
-                      type="button"
-                      className="link_btn"
-                      onClick={() => setMode("register")}
-                    >
-                      Register
-                    </button>
-                  </>
-                )}
-              </div>
             </form>
           </section>
         </main>
@@ -195,6 +202,95 @@ export default function App() {
     );
   }
 
+  // ---------- ONBOARDING STEP 1 ----------
+  async function saveGenre() {
+    setOnboardingError("");
+
+    if (!preferredGenre) {
+      setOnboardingError("Please select a genre.");
+      return;
+    }
+
+    try {
+      const res = await fetch("http://localhost:3000/onboarding/genre", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          uid: session.uid,
+          preferredGenre: preferredGenre,
+        }),
+      });
+
+      const data = await res.json();
+
+      if (!res.ok) {
+        setOnboardingError(data.message || "failed to save genre");
+        return;
+      }
+
+      // ✅ step 1 done → on va au dashboard
+      setOnboardingStep("done");
+    } catch (err) {
+      setOnboardingError("network error (backend running?)");
+    }
+  }
+
+  if (onboardingStep === "genre") {
+    return (
+      <div className="app app_auth">
+        <main className="auth_wrap">
+          <section className="panel panel_auth">
+            <h2 className="panel_title">Question 1 / 3</h2>
+            <p className="subtitle" style={{ marginTop: 8 }}>
+              What genre do you prefer the most?
+            </p>
+
+            <div className="auth_form">
+              <div className="auth_field">
+                <label>Favorite genre</label>
+                <select
+                  value={preferredGenre}
+                  onChange={(e) => setPreferredGenre(e.target.value)}
+                >
+                  <option value="">Select a genre...</option>
+                  <option value="Action">Action</option>
+                  <option value="RPG">RPG</option>
+                  <option value="Adventure">Adventure</option>
+                  <option value="Shooter">Shooter</option>
+                  <option value="Sandbox">Sandbox</option>
+                  <option value="Strategy">Strategy</option>
+                  <option value="Sports">Sports</option>
+                  <option value="Simulation">Simulation</option>
+                  <option value="Horror">Horror</option>
+                  <option value="Puzzle">Puzzle</option>
+                </select>
+              </div>
+
+              {onboardingError && (
+                <div className="auth_error">{onboardingError}</div>
+              )}
+
+              <button className="btn_primary" type="button" onClick={saveGenre}>
+                Next
+              </button>
+
+              {onboardingStep === "done" && (
+                <button
+                  onClick={logout}
+                  className="btn_secondary"
+                  type="button"
+                >
+                  Logout
+                </button>
+              )}
+            </div>
+          </section>
+        </main>
+      </div>
+    );
+  }
+
+  // ---------- DASHBOARD ----------
   return (
     <div className="app">
       <header className="header header_dash">
@@ -203,7 +299,12 @@ export default function App() {
 
           <div className="session_info">
             <div className="session_line">
-              Hi <span className="pill">{session.name || "User"}</span>{" "}
+              Logged in as{" "}
+              <span className="pill">{session.name || "User"}</span>{" "}
+              <span className="muted">({session.email})</span>
+            </div>
+            <div className="session_line">
+              UID: <span className="mono">{session.uid}</span>
             </div>
           </div>
 
