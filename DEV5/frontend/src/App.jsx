@@ -23,6 +23,15 @@ export default function App() {
     loadProfile();
   }, []);
 
+  let influencedGames = games;
+
+  if (profile) {
+    influencedGames = [
+      ...games.filter((game) => game.genre === profile.favoriteGenre),
+      ...games.filter((game) => game.genre !== profile.favoriteGenre),
+    ];
+  }
+
   return (
     <div className="app">
       <header className="header">
@@ -40,7 +49,7 @@ export default function App() {
       <main className="grid">
         <section className="panel">
           <h2 className="panel_title">Games</h2>
-          <GameList games={games} />
+          <GameList games={influencedGames} />
         </section>
 
         <section className="panel">
