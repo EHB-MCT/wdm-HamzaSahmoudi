@@ -1,6 +1,7 @@
 const express = require("express");
 const cors = require("cors");
 const mongoose = require("mongoose");
+const usersRoutes = require("./routes/users");
 
 const app = express();
 
@@ -15,6 +16,8 @@ mongoose
 app.get("/status", (req, res) => {
   res.send("OK");
 });
+
+app.use("/users", usersRoutes);
 
 const PORT = process.env.PORT || 3000;
 app.listen(PORT, () => {
