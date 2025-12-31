@@ -3,6 +3,7 @@ const cors = require("cors");
 const mongoose = require("mongoose");
 const usersRoutes = require("./routes/users");
 const gamesRoutes = require("./routes/games");
+const profileRoutes = require("./routes/profile");
 
 const app = express();
 
@@ -21,6 +22,8 @@ app.get("/status", (req, res) => {
 app.use("/users", usersRoutes);
 
 app.use("/games", gamesRoutes);
+
+app.use("/profile", profileRoutes);
 
 const PORT = process.env.PORT || 3000;
 app.listen(PORT, () => {
