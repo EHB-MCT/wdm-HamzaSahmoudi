@@ -203,12 +203,7 @@ export default function App() {
 
           <div className="session_info">
             <div className="session_line">
-              Logged in as{" "}
-              <span className="pill">{session.name || "User"}</span>{" "}
-              <span className="muted">({session.email})</span>
-            </div>
-            <div className="session_line">
-              UID: <span className="mono">{session.uid}</span>
+              Hi <span className="pill">{session.name || "User"}</span>{" "}
             </div>
           </div>
 
