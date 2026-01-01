@@ -7,6 +7,7 @@ const profileRoutes = require("./routes/profile");
 const authRoutes = require("./routes/auth");
 const gameSearchRoutes = require("./routes/gameSearch");
 const onboardingRoutes = require("./routes/onboarding");
+const dashboardRoutes = require("./routes/dashboard");
 
 const app = express();
 
@@ -33,6 +34,8 @@ app.use("/auth", authRoutes);
 app.use("/game-search", gameSearchRoutes);
 
 app.use("/onboarding", onboardingRoutes);
+
+app.use("/dashboard", dashboardRoutes);
 
 const PORT = process.env.PORT || 3000;
 app.listen(PORT, () => {
