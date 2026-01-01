@@ -4,28 +4,134 @@ export default function Dashboard({ session, onLogout }) {
   const [data, setData] = useState(null);
   const [error, setError] = useState("");
 
-  useEffect(() => {
-    async function load() {
-      setError("");
-      try {
-        const res = await fetch(
-          "http://localhost:3000/dashboard?uid=" + session.uid
-        );
-        const json = await res.json();
+  // add game UI
+  const [isAdding, setIsAdding] = useState(false);
+  const [query, setQuery] = useState("");
+  const [results, setResults] = useState([]);
+  const [showSuggestions, setShowSuggestions] = useState(false);
 
-        if (!res.ok) {
-          setError(json.message || "failed to load dashboard");
-          return;
-        }
+  const [editingId, setEditingId] = useState(null);
+  const [editHours, setEditHours] = useState("");
 
-        setData(json);
-      } catch (e) {
-        setError("backend not running?");
+  async function loadDashboard() {
+    setError("");
+    try {
+      const res = await fetch(
+        "http://localhost:3000/dashboard?uid=" + session.uid
+      );
+      const json = await res.json();
+
+      if (!res.ok) {
+        setError(json.message || "failed to load dashboard");
+        return;
       }
+
+      setData(json);
+    } catch (e) {
+      setError("backend not running?");
+    }
+  }
+
+  useEffect(() => {
+    loadDashboard();
+  }, [session.uid]);
+
+  useEffect(() => {
+    const q = query.trim();
+
+    if (!isAdding) return;
+    if (q.length < 2) {
+      setResults([]);
+      return;
     }
 
-    load();
-  }, [session.uid]);
+    const t = setTimeout(async () => {
+      try {
+        const res = await fetch("http://localhost:3000/game-search?q=" + q);
+        const json = await res.json();
+        setResults(json || []);
+      } catch (e) {
+        setResults([]);
+      }
+    }, 250);
+
+    return () => clearTimeout(t);
+  }, [query, isAdding]);
+
+  async function addGame(game) {
+    const hours = prompt("How many hours (approx)?", "0");
+    if (hours === null) return;
+
+    const res = await fetch("http://localhost:3000/dashboard/games", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        uid: session.uid,
+        gameId: String(game.id),
+        title: game.name,
+        image: game.image,
+        hours: Number(hours || 0),
+      }),
+    });
+
+    const json = await res.json();
+    if (!res.ok) {
+      alert(json.message || "failed to add");
+      return;
+    }
+
+    setQuery("");
+    setResults([]);
+    setShowSuggestions(false);
+    setIsAdding(false);
+
+    loadDashboard();
+  }
+
+  function startEdit(gameId, currentHours) {
+    setEditingId(gameId);
+    setEditHours(String(currentHours));
+  }
+
+  async function saveHours(gameId) {
+    const res = await fetch("http://localhost:3000/dashboard/games/" + gameId, {
+      method: "PUT",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        uid: session.uid,
+        hours: Number(editHours || 0),
+      }),
+    });
+
+    const json = await res.json();
+    if (!res.ok) {
+      alert(json.message || "failed to update");
+      return;
+    }
+
+    setEditingId(null);
+    setEditHours("");
+    loadDashboard();
+  }
+
+  async function deleteGame(gameId) {
+    const ok = confirm("Delete this game?");
+    if (!ok) return;
+
+    const res = await fetch("http://localhost:3000/dashboard/games/" + gameId, {
+      method: "DELETE",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ uid: session.uid }),
+    });
+
+    const json = await res.json();
+    if (!res.ok) {
+      alert(json.message || "failed to delete");
+      return;
+    }
+
+    loadDashboard();
+  }
 
   return (
     <div className="app">
@@ -64,10 +170,66 @@ export default function Dashboard({ session, onLogout }) {
 
       <main className="grid grid_single">
         <section className="panel">
-          <h2 className="panel_title">Your games</h2>
+          <div style={{ display: "flex", justifyContent: "space-between" }}>
+            <h2 className="panel_title">Your games</h2>
+
+            <button
+              type="button"
+              className="btn_primary"
+              onClick={() => {
+                setIsAdding(!isAdding);
+                setQuery("");
+                setResults([]);
+              }}
+            >
+              {isAdding ? "Close" : "Add game"}
+            </button>
+          </div>
+
+          {isAdding && (
+            <div style={{ marginTop: 12 }}>
+              <div className="auth_field" style={{ position: "relative" }}>
+                <label>Search a game</label>
+                <input
+                  value={query}
+                  onChange={(e) => {
+                    setQuery(e.target.value);
+                    setShowSuggestions(true);
+                  }}
+                  onFocus={() => setShowSuggestions(true)}
+                  placeholder="Type a game name..."
+                />
+
+                {showSuggestions &&
+                  query.trim().length >= 2 &&
+                  results.length > 0 && (
+                    <div className="suggestions">
+                      {results.map((g) => (
+                        <button
+                          key={g.id}
+                          type="button"
+                          className="suggestion_item"
+                          onClick={() => addGame(g)}
+                        >
+                          {g.image ? (
+                            <img
+                              className="suggestion_img"
+                              src={g.image}
+                              alt={g.name}
+                            />
+                          ) : (
+                            <div className="suggestion_img_placeholder" />
+                          )}
+                          <span className="suggestion_title">{g.name}</span>
+                        </button>
+                      ))}
+                    </div>
+                  )}
+              </div>
+            </div>
+          )}
 
           {error && <div className="auth_error">{error}</div>}
-
           {!data && <div className="muted">Loading...</div>}
 
           {data && data.playedGames.length === 0 && (
@@ -75,7 +237,7 @@ export default function Dashboard({ session, onLogout }) {
           )}
 
           {data && data.playedGames.length > 0 && (
-            <div style={{ display: "grid", gap: 10 }}>
+            <div style={{ display: "grid", gap: 10, marginTop: 12 }}>
               {data.playedGames.map((g) => (
                 <div className="selected_row" key={g.id}>
                   <div className="selected_left">
@@ -92,10 +254,59 @@ export default function Dashboard({ session, onLogout }) {
                   </div>
 
                   <div
-                    className="pill"
-                    style={{ background: "rgba(124, 92, 255, 0.18)" }}
+                    style={{ display: "flex", gap: 8, alignItems: "center" }}
                   >
-                    {g.hours}h
+                    {editingId === g.id ? (
+                      <>
+                        <input
+                          type="number"
+                          min="0"
+                          value={editHours}
+                          onChange={(e) => setEditHours(e.target.value)}
+                          style={{ width: 90 }}
+                        />
+                        <button
+                          type="button"
+                          className="btn_primary"
+                          onClick={() => saveHours(g.id)}
+                        >
+                          Save
+                        </button>
+                        <button
+                          type="button"
+                          className="btn_secondary"
+                          onClick={() => {
+                            setEditingId(null);
+                            setEditHours("");
+                          }}
+                        >
+                          Cancel
+                        </button>
+                      </>
+                    ) : (
+                      <>
+                        <div
+                          className="pill"
+                          style={{ background: "rgba(124, 92, 255, 0.18)" }}
+                        >
+                          {g.hours}h
+                        </div>
+                        <button
+                          type="button"
+                          className="btn_secondary"
+                          onClick={() => startEdit(g.id, g.hours)}
+                        >
+                          Edit
+                        </button>
+                        <button
+                          type="button"
+                          className="btn_secondary"
+                          onClick={() => deleteGame(g.id)}
+                        >
+                          Delete
+                        </button>
+                      </>
+                    )}
                   </div>
                 </div>
               ))}
