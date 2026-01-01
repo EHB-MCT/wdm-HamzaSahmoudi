@@ -4,7 +4,6 @@ export default function Dashboard({ session, onLogout }) {
   const [data, setData] = useState(null);
   const [error, setError] = useState("");
 
-  // add game UI
   const [isAdding, setIsAdding] = useState(false);
   const [query, setQuery] = useState("");
   const [results, setResults] = useState([]);
