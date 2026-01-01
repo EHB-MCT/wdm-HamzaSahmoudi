@@ -6,6 +6,7 @@ const PlayedGameSchema = new mongoose.Schema({
   title: String,
   image: String,
   hours: Number,
+  genre: String,
   createdAt: Date,
 });
 
