@@ -1,41 +1,44 @@
 const express = require("express");
+const User = require("../models/User");
 const PlayedGame = require("../models/PlayedGame");
 
 const router = express.Router();
 
 router.get("/", async (req, res) => {
-  const uid = req.query.uid;
+  try {
+    const uid = req.query.uid;
 
-  const games = await PlayedGame.find({ uid: uid });
-
-  let totalHours = 0;
-  const genreCount = {};
-
-  for (const game of games) {
-    totalHours += game.hours;
-
-    if (genreCount[game.genre]) {
-      genreCount[game.genre] += 1;
-    } else {
-      genreCount[game.genre] = 1;
+    if (!uid) {
+      return res.status(400).json({ message: "uid required" });
     }
-  }
 
-  let favoriteGenre = null;
-  let max = 0;
-
-  for (const genre in genreCount) {
-    if (genreCount[genre] > max) {
-      max = genreCount[genre];
-      favoriteGenre = genre;
+    const user = await User.findOne({ uid: uid });
+    if (!user) {
+      return res.status(404).json({ message: "user not found" });
     }
-  }
 
-  res.json({
-    uid: uid,
-    totalHours: totalHours,
-    favoriteGenre: favoriteGenre,
-  });
+    const games = await PlayedGame.find({ uid: uid });
+
+    let totalHours = 0;
+    for (const game of games) {
+      totalHours += Number(game.hours || 0);
+    }
+
+    res.json({
+      uid: uid,
+      totalHours: totalHours,
+      favoriteGenre: user.preferredGenre || null,
+      playedGames: games.map((g) => ({
+        id: String(g._id),
+        gameId: String(g.gameId),
+        title: g.title,
+        image: g.image || "",
+        hours: Number(g.hours || 0),
+      })),
+    });
+  } catch (err) {
+    return res.status(500).json({ message: "server error" });
+  }
 });
 
 module.exports = router;
