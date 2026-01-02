@@ -15,7 +15,6 @@ export default function App() {
   const [profile, setProfile] = useState(null);
 
   const [step, setStep] = useState(1);
-  const [preferredGenre, setPreferredGenre] = useState("");
   const [selectedGames, setSelectedGames] = useState([]);
 
   useEffect(() => {
@@ -31,15 +30,20 @@ export default function App() {
   useEffect(() => {
     async function loadProfile() {
       if (!session?.uid) return;
+
       const res = await fetch(
         "http://localhost:3000/profile?uid=" + session.uid
       );
       const data = await res.json();
       setProfile(data);
 
-      if (!data.favoriteGenre) setStep(1);
-      else setStep(4);
+      if (!data.playedGames || data.playedGames.length === 0) {
+        setStep(1);
+      } else {
+        setStep(3);
+      }
     }
+
     loadProfile();
   }, [session]);
 
@@ -72,7 +76,11 @@ export default function App() {
       setSession(data);
       setProfile(null);
 
-      if (mode === "register") setStep(1);
+      if (mode === "register") {
+        setStep(1);
+        setSelectedGames([]);
+      }
+
       setEmail("");
       setPassword("");
       setName("");
@@ -85,7 +93,6 @@ export default function App() {
     setSession(null);
     setProfile(null);
     setStep(1);
-    setPreferredGenre("");
     setSelectedGames([]);
   }
 
@@ -106,18 +113,16 @@ export default function App() {
     );
   }
 
-  if (step <= 3) {
+  if (step <= 2) {
     return (
       <Onboarding
         session={session}
         onFinish={() => {
-          setStep(4);
+          setStep(3);
           setProfile(null);
         }}
         step={step}
         setStep={setStep}
-        preferredGenre={preferredGenre}
-        setPreferredGenre={setPreferredGenre}
         selectedGames={selectedGames}
         setSelectedGames={setSelectedGames}
       />
