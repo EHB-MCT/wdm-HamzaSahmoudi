@@ -5,8 +5,6 @@ export default function Onboarding({
   onFinish,
   step,
   setStep,
-  preferredGenre,
-  setPreferredGenre,
   selectedGames,
   setSelectedGames,
 }) {
@@ -18,7 +16,7 @@ export default function Onboarding({
   const [hoursById, setHoursById] = useState({});
 
   useEffect(() => {
-    if (step !== 3) return;
+    if (step !== 2) return;
 
     const init = {};
     selectedGames.forEach((g) => {
@@ -84,7 +82,6 @@ export default function Onboarding({
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({
         uid: session.uid,
-        favoriteGenre: preferredGenre,
         playedGames,
       }),
     });
@@ -104,53 +101,7 @@ export default function Onboarding({
       <div className="app app_auth">
         <main className="auth_wrap">
           <section className="panel panel_auth">
-            <div className="muted">Question 1 / 3</div>
-            <h2 className="panel_title" style={{ marginTop: 6 }}>
-              What genre do you prefer the most?
-            </h2>
-
-            <div className="auth_form">
-              <div className="auth_field">
-                <label>Favorite genre</label>
-                <select
-                  value={preferredGenre}
-                  onChange={(e) => setPreferredGenre(e.target.value)}
-                >
-                  <option value="">Select a genre...</option>
-                  <option value="Action">Action</option>
-                  <option value="RPG">RPG</option>
-                  <option value="Adventure">Adventure</option>
-                  <option value="Shooter">Shooter</option>
-                  <option value="Sandbox">Sandbox</option>
-                  <option value="Strategy">Strategy</option>
-                  <option value="Sports">Sports</option>
-                  <option value="Simulation">Simulation</option>
-                  <option value="Horror">Horror</option>
-                  <option value="Puzzle">Puzzle</option>
-                </select>
-              </div>
-
-              <button
-                className="btn_primary"
-                type="button"
-                disabled={!preferredGenre}
-                onClick={() => setStep(2)}
-              >
-                Next
-              </button>
-            </div>
-          </section>
-        </main>
-      </div>
-    );
-  }
-
-  if (step === 2) {
-    return (
-      <div className="app app_auth">
-        <main className="auth_wrap">
-          <section className="panel panel_auth">
-            <div className="muted">Question 2 / 3</div>
+            <div className="muted">Step 1 / 2</div>
             <h2 className="panel_title" style={{ marginTop: 6 }}>
               What games are you playing right now on Steam?
             </h2>
@@ -234,7 +185,7 @@ export default function Onboarding({
                 className="btn_primary"
                 type="button"
                 disabled={selectedGames.length === 0}
-                onClick={() => setStep(3)}
+                onClick={() => setStep(2)}
               >
                 Next
               </button>
@@ -245,12 +196,12 @@ export default function Onboarding({
     );
   }
 
-  if (step === 3) {
+  if (step === 2) {
     return (
       <div className="app app_auth">
         <main className="auth_wrap">
           <section className="panel panel_auth">
-            <div className="muted">Question 3 / 3</div>
+            <div className="muted">Step 2 / 2</div>
             <h2 className="panel_title" style={{ marginTop: 6 }}>
               Approximately how many hours did you play?
             </h2>
