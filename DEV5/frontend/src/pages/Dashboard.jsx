@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 
-export default function Dashboard({ session, onLogout }) {
+export default function Dashboard({ session, logout }) {
   const [data, setData] = useState(null);
   const [error, setError] = useState("");
 
@@ -162,7 +162,7 @@ export default function Dashboard({ session, onLogout }) {
           )}
         </div>
 
-        <button onClick={onLogout} className="btn_secondary" type="button">
+        <button onClick={logout} className="btn_secondary" type="button">
           Logout
         </button>
       </header>
