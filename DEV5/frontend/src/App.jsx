@@ -4,6 +4,7 @@ import AuthPage from "./pages/AuthPage.jsx";
 import Onboarding from "./pages/Onboarding.jsx";
 import Dashboard from "./pages/Dashboard.jsx";
 import Leaderboard from "./pages/Leaderboard.jsx";
+import AdminDashboard from "./pages/AdminDashboard.jsx";
 
 export default function App() {
   const [mode, setMode] = useState("login");
@@ -11,6 +12,10 @@ export default function App() {
   const [password, setPassword] = useState("");
   const [name, setName] = useState("");
   const [authError, setAuthError] = useState("");
+
+  const [adminEmail, setAdminEmail] = useState("");
+  const [adminPassword, setAdminPassword] = useState("");
+  const [adminAuthError, setAdminAuthError] = useState("");
 
   const [session, setSession] = useState(null);
   const [profile, setProfile] = useState(null);
@@ -92,6 +97,41 @@ export default function App() {
     }
   }
 
+  async function onAdminSubmit(e) {
+    e.preventDefault();
+    setAdminAuthError("");
+
+    try {
+      const res = await fetch("http://localhost:3000/auth/login", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          email: adminEmail,
+          password: adminPassword,
+        }),
+      });
+
+      const data = await res.json();
+
+      if (!res.ok) {
+        setAdminAuthError(data.message || "admin login failed");
+        return;
+      }
+
+      if (!data.isAdmin) {
+        setAdminAuthError("Access denied: admin privileges required");
+        return;
+      }
+
+      setSession(data);
+      setProfile(null);
+      setAdminEmail("");
+      setAdminPassword("");
+    } catch (err) {
+      setAdminAuthError("network error (backend running?)");
+    }
+  }
+
   function logout() {
     setSession(null);
     setProfile(null);
@@ -113,8 +153,19 @@ export default function App() {
         setName={setName}
         authError={authError}
         onSubmit={onSubmit}
+        setSession={setSession}
+        adminEmail={adminEmail}
+        setAdminEmail={setAdminEmail}
+        adminPassword={adminPassword}
+        setAdminPassword={setAdminPassword}
+        adminAuthError={adminAuthError}
+        onAdminSubmit={onAdminSubmit}
       />
     );
+  }
+
+  if (session.isAdmin) {
+    return <AdminDashboard session={session} logout={logout} />;
   }
 
   if (step <= 2) {
@@ -137,12 +188,37 @@ export default function App() {
     return <Leaderboard onBack={() => setView("dashboard")} />;
   }
 
+  if (view === "admin-login") {
+    return (
+      <AuthPage
+        mode="admin-login"
+        setMode={setMode}
+        email={email}
+        setEmail={setEmail}
+        password={password}
+        setPassword={setPassword}
+        name={name}
+        setName={setName}
+        authError={authError}
+        onSubmit={onSubmit}
+        setSession={setSession}
+        adminEmail={adminEmail}
+        setAdminEmail={setAdminEmail}
+        adminPassword={adminPassword}
+        setAdminPassword={setAdminPassword}
+        adminAuthError={adminAuthError}
+        onAdminSubmit={onAdminSubmit}
+      />
+    );
+  }
+
   return (
     <Dashboard
       session={session}
       profile={profile}
       logout={logout}
       onLeaderboard={() => setView("leaderboard")}
+      onAdmin={() => setView("admin-login")}
     />
   );
 }

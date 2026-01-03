@@ -15,6 +15,11 @@ router.post("/register", async (req, res) => {
       .json({ message: "email, password and name required" });
   }
 
+  const existingAdmin = await Account.findOne({ email: email, isAdmin: true });
+  if (existingAdmin) {
+    return res.status(403).json({ message: "admin email cannot be used for registration" });
+  }
+
   const existing = await Account.findOne({ email: email });
   if (existing) {
     return res.status(409).json({ message: "email already exists" });
@@ -24,6 +29,7 @@ router.post("/register", async (req, res) => {
     email: email,
     password: password,
     createdAt: new Date(),
+    isAdmin: false,
   });
 
   await account.save();
@@ -42,6 +48,7 @@ router.post("/register", async (req, res) => {
     uid: user.uid,
     name: user.name,
     email: account.email,
+    isAdmin: account.isAdmin,
   });
 });
 
@@ -66,6 +73,7 @@ router.post("/login", async (req, res) => {
     uid: user ? user.uid : null,
     name: user ? user.name : null,
     email: account.email,
+    isAdmin: account.isAdmin,
   });
 });
 
