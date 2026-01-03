@@ -140,11 +140,7 @@ export default function Dashboard({ session, logout, onLeaderboard, onAdmin }) {
 
           <div className="session_info">
             <div className="session_line">
-              Logged in as <span className="pill">{session.name}</span>{" "}
-              <span className="muted">({session.email})</span>
-            </div>
-            <div className="session_line">
-              UID: <span className="mono">{session.uid}</span>
+              Logged in as <span className="pill">{session.name}</span>
             </div>
           </div>
 
