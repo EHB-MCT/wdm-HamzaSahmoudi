@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 
-export default function Dashboard({ session, onLogout, onLeaderboard }) {
+export default function Dashboard({ session, logout, onLeaderboard, onAdmin }) {
   const [data, setData] = useState(null);
   const [error, setError] = useState("");
 
@@ -163,6 +163,16 @@ export default function Dashboard({ session, onLogout, onLeaderboard }) {
         </div>
 
         <div style={{ display: "flex", gap: 10 }}>
+          {session.isAdmin && (
+            <button
+              onClick={onAdmin}
+              className="btn_secondary"
+              type="button"
+            >
+              Admin
+            </button>
+          )}
+
           <button
             onClick={onLeaderboard}
             className="btn_secondary"
@@ -171,7 +181,7 @@ export default function Dashboard({ session, onLogout, onLeaderboard }) {
             Leaderboard
           </button>
 
-          <button onClick={onLogout} className="btn_secondary" type="button">
+          <button onClick={logout} className="btn_secondary" type="button">
             Logout
           </button>
         </div>
