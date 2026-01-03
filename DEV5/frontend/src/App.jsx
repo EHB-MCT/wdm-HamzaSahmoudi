@@ -3,6 +3,7 @@ import "./App.css";
 import AuthPage from "./pages/AuthPage.jsx";
 import Onboarding from "./pages/Onboarding.jsx";
 import Dashboard from "./pages/Dashboard.jsx";
+import Leaderboard from "./pages/Leaderboard.jsx";
 
 export default function App() {
   const [mode, setMode] = useState("login");
@@ -13,6 +14,8 @@ export default function App() {
 
   const [session, setSession] = useState(null);
   const [profile, setProfile] = useState(null);
+
+  const [view, setView] = useState("dashboard");
 
   const [step, setStep] = useState(1);
   const [selectedGames, setSelectedGames] = useState([]);
@@ -94,6 +97,7 @@ export default function App() {
     setProfile(null);
     setStep(1);
     setSelectedGames([]);
+    setView("dashboard");
   }
 
   if (!session) {
@@ -129,5 +133,16 @@ export default function App() {
     );
   }
 
-  return <Dashboard session={session} profile={profile} logout={logout} />;
+  if (view === "leaderboard") {
+    return <Leaderboard onBack={() => setView("dashboard")} />;
+  }
+
+  return (
+    <Dashboard
+      session={session}
+      profile={profile}
+      logout={logout}
+      onLeaderboard={() => setView("leaderboard")}
+    />
+  );
 }
