@@ -4,7 +4,7 @@ const PlayedGame = require('../models/PlayedGame');
 const { CartItem } = require('../models/Shop');
 const User = require('../models/User');
 
-const randomSearchTerms = [
+const searchTerms = [
   'action', 'rpg', 'adventure', 'strategy', 'shooter', 'puzzle', 
   'horror', 'simulation', 'racing', 'sports', 'indie', 'multiplayer',
   'fantasy', 'sci-fi', 'open world', 'survival', 'co-op', 'mmo'
@@ -26,15 +26,14 @@ router.get('/', async (req, res) => {
     const playedGames = await PlayedGame.find({ uid });
     const playedGameIds = playedGames.map(game => game.gameId);
 
-    const excludeIds = [...playedGameIds, ...cartGameIds, ...notInterested];
+const excludeIds = [...playedGameIds, ...cartGameIds, ...notInterested];
 
-    const shuffledTerms = [...randomSearchTerms].sort(() => 0.5 - Math.random());
-    const selectedTerms = shuffledTerms.slice(0, 3);
+    const userGenre = user?.preferredGenre;
     const allRecommendations = [];
 
-    for (const term of selectedTerms) {
+    if (userGenre && searchTerms.includes(userGenre.toLowerCase())) {
       try {
-        const searchUrl = `https://store.steampowered.com/api/storesearch/?term=${encodeURIComponent(term)}&l=english&cc=us`;
+        const searchUrl = `https://store.steampowered.com/api/storesearch/?term=${encodeURIComponent(userGenre)}&l=english&cc=us`;
         const searchResponse = await fetch(searchUrl);
         const searchData = await searchResponse.json();
 
@@ -44,12 +43,42 @@ router.get('/', async (req, res) => {
             gameId: item.id.toString(),
             title: item.name,
             image: item.tiny_image,
-            reason: `Random discovery`
+            reason: `Based on your preference for ${userGenre}`
           }));
 
         allRecommendations.push(...recommendations);
       } catch (error) {
-        console.error(`Failed to search for term: ${term}`);
+        console.error(`Failed to search for preferred genre: ${userGenre}`);
+      }
+    }
+
+    if (allRecommendations.length < 3) {
+      const additionalTerms = searchTerms.filter(term => 
+        !userGenre || term.toLowerCase() !== userGenre.toLowerCase()
+      );
+      const shuffledTerms = [...additionalTerms].sort(() => 0.5 - Math.random());
+      const neededTerms = 3 - allRecommendations.length;
+      const selectedTerms = shuffledTerms.slice(0, neededTerms);
+
+      for (const term of selectedTerms) {
+        try {
+          const searchUrl = `https://store.steampowered.com/api/storesearch/?term=${encodeURIComponent(term)}&l=english&cc=us`;
+          const searchResponse = await fetch(searchUrl);
+          const searchData = await searchResponse.json();
+
+          const recommendations = (searchData.items || [])
+            .filter(item => !excludeIds.includes(item.id.toString()))
+            .map(item => ({
+              gameId: item.id.toString(),
+              title: item.name,
+              image: item.tiny_image,
+              reason: `Popular ${term} game`
+            }));
+
+          allRecommendations.push(...recommendations.slice(0, 3 - allRecommendations.length));
+        } catch (error) {
+          console.error(`Failed to search for term: ${term}`);
+        }
       }
     }
 
@@ -58,7 +87,7 @@ router.get('/', async (req, res) => {
     );
     
     const shuffled = uniqueRecommendations.sort(() => 0.5 - Math.random());
-    const finalRecommendations = shuffled.slice(0, 5);
+    const finalRecommendations = shuffled.slice(0, 3);
 
     res.json(finalRecommendations);
   } catch (error) {
@@ -101,11 +130,18 @@ router.get('/refresh', async (req, res) => {
     const playedGames = await PlayedGame.find({ uid });
     const playedGameIds = playedGames.map(game => game.gameId);
 
-    const excludeIds = [...playedGameIds, ...cartGameIds, ...notInterested];
+const excludeIds = [...playedGameIds, ...cartGameIds, ...notInterested];
 
-    const randomTerm = randomSearchTerms[Math.floor(Math.random() * randomSearchTerms.length)];
+    const userGenre = user?.preferredGenre;
+    let searchTerm;
 
-    const searchUrl = `https://store.steampowered.com/api/storesearch/?term=${encodeURIComponent(randomTerm)}&l=english&cc=us`;
+    if (userGenre && searchTerms.includes(userGenre.toLowerCase())) {
+      searchTerm = userGenre;
+    } else {
+      searchTerm = searchTerms[Math.floor(Math.random() * searchTerms.length)];
+    }
+
+    const searchUrl = `https://store.steampowered.com/api/storesearch/?term=${encodeURIComponent(searchTerm)}&l=english&cc=us`;
     const searchResponse = await fetch(searchUrl);
     const searchData = await searchResponse.json();
 
@@ -121,7 +157,9 @@ router.get('/refresh', async (req, res) => {
       gameId: randomGame.id.toString(),
       title: randomGame.name,
       image: randomGame.tiny_image,
-      reason: `Random discovery`
+      reason: userGenre && searchTerm.toLowerCase() === userGenre.toLowerCase() 
+        ? `Based on your preference for ${userGenre}`
+        : `Popular ${searchTerm} game`
     };
 
     res.json([recommendation]);

@@ -159,12 +159,12 @@ async function deleteGame(gameId) {
     }
   }
 
-  async function loadRecommendations() {
+async function loadRecommendations() {
     try {
       const res = await fetch(`http://localhost:3000/recommendations?uid=${session.uid}`);
       const json = await res.json();
       if (res.ok) {
-        setRecommendations(json || []);
+        setRecommendations((json || []).slice(0, 3));
       }
     } catch (e) {
       console.error("Failed to load recommendations");
@@ -193,7 +193,7 @@ async function deleteGame(gameId) {
     loadRecommendations();
   }
 
-  async function markNotInterested(gameId) {
+async function markNotInterested(gameId) {
     const res = await fetch("http://localhost:3000/recommendations/not-interested", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
@@ -218,17 +218,20 @@ async function deleteGame(gameId) {
         loadRefreshedRecommendations();
       }, 300);
       
-      return filtered;
+      return filtered.slice(0, 3);
     });
   }
 
-  async function loadRefreshedRecommendations() {
+async function loadRefreshedRecommendations() {
     try {
       const res = await fetch(`http://localhost:3000/recommendations/refresh?uid=${session.uid}`);
       const json = await res.json();
       if (res.ok && json.length > 0) {
-        // Ajouter seulement 1 nouvelle recommandation aléatoire
-        setRecommendations(prev => [...prev, ...json]);
+        // Ajouter 1 nouvelle recommandation pour maintenir 3 maximum
+        setRecommendations(prev => {
+          const updated = [...prev, ...json];
+          return updated.slice(0, 3);
+        });
       }
     } catch (e) {
       console.error("Failed to load refreshed recommendations");
@@ -441,11 +444,11 @@ async function deleteGame(gameId) {
           <section className="panel">
             <h2 className="panel_title">Recommendations</h2>
             
-            {recommendations.length === 0 ? (
+{recommendations.length === 0 ? (
               <div className="muted">No recommendations available.</div>
             ) : (
               <div className="rec_grid">
-                {recommendations.map((game) => (
+                {recommendations.slice(0, 3).map((game) => (
                   <div key={game.gameId} className="rec_card">
                     <div className="rec_img_rect">
                       {game.image ? (

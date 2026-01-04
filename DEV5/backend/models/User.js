@@ -6,6 +6,7 @@ const UserSchema = new mongoose.Schema({
   name: String,
   email: String,
   preferredGenre: String,
+  notInterested: [String],
   createdAt: Date,
 });
 
