@@ -10,19 +10,22 @@ Application web pour suivre les heures de jeu vidéo avec onboarding personnalis
 ## Step-by-Step Setup Guide
 
 1.Clone the repository:
-   ```bash
-   git clone https://github.com/EHB-MCT/wdm-HamzaSahmoudi.git
-   ```
+
+```bash
+git clone https://github.com/EHB-MCT/wdm-HamzaSahmoudi.git
+```
 
 2.Configure environment variables:
-   ```bash
-   cp backend/.env.template backend/.env
-   ```
+
+```bash
+cp DEV5/backend/.env.template DEV5/backend/.env
+```
 
 3.Start all services:
-   ```bash
-   docker compose up --build
-   ```
+
+```bash
+docker compose up --build
+```
 
 ## Access URLs
 
@@ -33,6 +36,7 @@ Application web pour suivre les heures de jeu vidéo avec onboarding personnalis
 ## Testing Flow
 
 ### User Flow
+
 1. Register new account on auth page
 2. Complete onboarding:
    - Search games via Steam API
@@ -43,6 +47,7 @@ Application web pour suivre les heures de jeu vidéo avec onboarding personnalis
 4. View leaderboard page
 
 ### Admin Flow
+
 1. Click "Admin" button on login page
 2. Login with admin credentials:
    - Email: admin@gmail.com
@@ -98,6 +103,7 @@ docker compose down
 ```
 
 Optional: Reset database completely:
+
 ```bash
 docker compose down -v
 ```
@@ -105,25 +111,31 @@ docker compose down -v
 ## API Endpoints
 
 ### Authentication
+
 - `POST /auth/register` - User registration
 - `POST /auth/login` - User login (returns user data with isAdmin flag)
 
 ### Dashboard
+
 - `GET /dashboard?uid=<user_id>` - Get user dashboard data (games, total hours, favorite genre)
 - `POST /dashboard/games` - Add new game to user library
 - `PUT /dashboard/games/:gameId` - Update game hours
 - `DELETE /dashboard/games/:gameId` - Remove game from user library
 
 ### Onboarding
+
 - `POST /onboarding/finish` - Complete onboarding with selected games and hours
 
 ### Game Search (Steam API Proxy)
+
 - `GET /game-search?q=<query>` - Search games via Steam Store API
 
 ### Leaderboard
+
 - `GET /leaderboard` - Get top games and genres by total hours
 
 ### Admin (requires isAdmin=true parameter)
+
 - `GET /admin/stats` - Get platform statistics (users, games, hours)
 - `GET /admin/users?isAdmin=true` - Get all users with their games and stats
 
