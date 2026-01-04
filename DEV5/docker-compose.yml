@@ -19,5 +19,14 @@ services:
     ports:
       - "3000:3000"
 
+  frontend:
+    build: ./frontend
+    container_name: games-frontend
+    restart: always
+    depends_on:
+      - backend
+    ports:
+      - "5173:5173"
+
 volumes:
   mongo-data:

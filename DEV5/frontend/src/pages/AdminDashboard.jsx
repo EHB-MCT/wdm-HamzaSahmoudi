@@ -13,7 +13,7 @@ useEffect(() => {
         const [statsRes, usersRes, ordersRes] = await Promise.all([
           fetch("http://localhost:3000/admin/stats?isAdmin=true"),
           fetch("http://localhost:3000/admin/users?isAdmin=true"),
-          fetch("http://localhost:3000/orders/admin/orders")
+          fetch("http://localhost:3000/admin/orders")
         ]);
 
         if (!statsRes.ok || !usersRes.ok || !ordersRes.ok) {

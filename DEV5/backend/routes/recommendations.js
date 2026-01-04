@@ -1,7 +1,7 @@
 const express = require('express');
 const router = express.Router();
 const PlayedGame = require('../models/PlayedGame');
-const CartItem = require('../models/CartItem');
+const { CartItem } = require('../models/Shop');
 const User = require('../models/User');
 
 const randomSearchTerms = [
