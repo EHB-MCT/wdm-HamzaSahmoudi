@@ -6,13 +6,20 @@ export default function AdminDashboard({ session, logout }) {
   const [orders, setOrders] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
+  const [minHoursFilter, setMinHoursFilter] = useState("");
 
 useEffect(() => {
     async function fetchData() {
       try {
+        // Build users URL with minHours filter if provided
+        let usersUrl = "http://localhost:3000/admin/users?isAdmin=true";
+        if (minHoursFilter) {
+          usersUrl += `&minHours=${minHoursFilter}`;
+        }
+
         const [statsRes, usersRes, ordersRes] = await Promise.all([
           fetch("http://localhost:3000/admin/stats?isAdmin=true"),
-          fetch("http://localhost:3000/admin/users?isAdmin=true"),
+          fetch(usersUrl),
           fetch("http://localhost:3000/admin/orders")
         ]);
 
@@ -38,7 +45,7 @@ useEffect(() => {
     }
 
     fetchData();
-  }, []);
+  }, [minHoursFilter]);
 
   if (loading) {
     return (
@@ -197,6 +204,31 @@ useEffect(() => {
 
         <section className="panel">
           <h2 className="panel_title">All Users and Their Games</h2>
+          
+          {/* User Filter by Total Hours */}
+          <div style={{ marginTop: 20, marginBottom: 20 }}>
+            <label style={{ color: "#e9eaf2", marginRight: 10, fontSize: "0.9em" }}>
+              Filter by total hours played:
+            </label>
+            <select 
+              value={minHoursFilter} 
+              onChange={(e) => setMinHoursFilter(e.target.value)}
+              style={{
+                padding: "8px 12px",
+                borderRadius: "6px",
+                border: "1px solid rgba(255, 255, 255, 0.2)",
+                backgroundColor: "rgba(255, 255, 255, 0.1)",
+                color: "#e9eaf2",
+                fontSize: "0.9em"
+              }}
+            >
+              <option value="">All users</option>
+              <option value="10">Users with 10+ hours</option>
+              <option value="50">Users with 50+ hours</option>
+              <option value="100">Users with 100+ hours</option>
+            </select>
+          </div>
+          
           <div style={{ marginTop: 20 }}>
             {users && users.length === 0 ? (
               <div className="muted">No users found.</div>

@@ -108,16 +108,22 @@ router.get("/users", async (req, res) => {
   }
 
   try {
+    // Get minHours filter from query params (optional)
+    const minHours = req.query.minHours ? parseInt(req.query.minHours) : null;
+    
     // Get non-admin accounts
     const nonAdminAccounts = await Account.find({ isAdmin: false });
     const accountIds = nonAdminAccounts.map(acc => acc._id.toString());
     
+    // Build match stage for filtering by totalHours if provided
+    const matchStage = {
+      accountId: { $in: accountIds }
+    };
+    
     // Find users associated with non-admin accounts
     const users = await User.aggregate([
       {
-        $match: {
-          accountId: { $in: accountIds }
-        }
+        $match: matchStage
       },
       {
         $lookup: {
@@ -171,10 +177,16 @@ router.get("/users", async (req, res) => {
           totalGames: { $size: "$games" },
           totalHours: { $sum: "$games.hours" }
         }
-      }
+      },
+      // Apply minHours filter if provided
+      ...(minHours !== null ? [{
+        $match: {
+          totalHours: { $gte: minHours }
+        }
+      }] : [])
     ]);
 
-    console.log(`Found ${users.length} users`);
+    console.log(`Found ${users.length} users${minHours !== null ? ` with ${minHours}+ hours` : ''}`);
     res.json(users);
   } catch (error) {
     console.error("Error fetching users:", error);
