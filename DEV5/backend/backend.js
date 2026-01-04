@@ -11,6 +11,8 @@ const onboardingRoutes = require("./routes/onboarding");
 const dashboardRoutes = require("./routes/dashboard");
 const leaderboardRoutes = require("./routes/leaderboard");
 const adminRoutes = require("./routes/admin");
+const shopRoutes = require("./routes/shop");
+const recommendationsRoutes = require("./routes/recommendations");
 const Account = require("./models/Account");
 const User = require("./models/User");
 
@@ -87,6 +89,10 @@ app.use("/dashboard", dashboardRoutes);
 app.use("/leaderboard", leaderboardRoutes);
 
 app.use("/admin", adminRoutes);
+
+app.use("/", shopRoutes);
+
+app.use("/recommendations", recommendationsRoutes);
 
 const PORT = process.env.PORT || 3000;
 app.listen(PORT, () => {

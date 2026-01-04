@@ -38,6 +38,7 @@ router.post("/register", async (req, res) => {
     accountId: String(account._id),
     uid: "user-" + String(account._id),
     name: name,
+    email: email,
     createdAt: new Date(),
   });
 

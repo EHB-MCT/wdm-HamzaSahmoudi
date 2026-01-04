@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 
-export default function Dashboard({ session, logout, onLeaderboard, onAdmin }) {
+export default function Dashboard({ session, logout, onLeaderboard, onAdmin, onCart }) {
   const [data, setData] = useState(null);
   const [error, setError] = useState("");
 
@@ -11,6 +11,9 @@ export default function Dashboard({ session, logout, onLeaderboard, onAdmin }) {
 
   const [editingId, setEditingId] = useState(null);
   const [editHours, setEditHours] = useState("");
+
+  const [cartCount, setCartCount] = useState(0);
+  const [recommendations, setRecommendations] = useState([]);
 
   async function loadDashboard() {
     setError("");
@@ -31,8 +34,20 @@ export default function Dashboard({ session, logout, onLeaderboard, onAdmin }) {
     }
   }
 
-  useEffect(() => {
+useEffect(() => {
     loadDashboard();
+    loadCartCount();
+    loadRecommendations();
+  }, [session.uid]);
+
+  // Recharger les recommandations quand on revient sur la page
+  useEffect(() => {
+    const handleFocus = () => {
+      loadRecommendations();
+    };
+    
+    window.addEventListener('focus', handleFocus);
+    return () => window.removeEventListener('focus', handleFocus);
   }, [session.uid]);
 
   useEffect(() => {
@@ -113,7 +128,7 @@ export default function Dashboard({ session, logout, onLeaderboard, onAdmin }) {
     loadDashboard();
   }
 
-  async function deleteGame(gameId) {
+async function deleteGame(gameId) {
     const ok = confirm("Delete this game?");
     if (!ok) return;
 
@@ -130,6 +145,94 @@ export default function Dashboard({ session, logout, onLeaderboard, onAdmin }) {
     }
 
     loadDashboard();
+  }
+
+  async function loadCartCount() {
+    try {
+      const res = await fetch(`http://localhost:3000/cart?uid=${session.uid}`);
+      const json = await res.json();
+      if (res.ok) {
+        setCartCount(json.count || 0);
+      }
+    } catch (e) {
+      console.error("Failed to load cart count");
+    }
+  }
+
+  async function loadRecommendations() {
+    try {
+      const res = await fetch(`http://localhost:3000/recommendations?uid=${session.uid}`);
+      const json = await res.json();
+      if (res.ok) {
+        setRecommendations(json || []);
+      }
+    } catch (e) {
+      console.error("Failed to load recommendations");
+    }
+  }
+
+  async function addToCart(game) {
+    const res = await fetch("http://localhost:3000/cart/add", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        uid: session.uid,
+        gameId: game.gameId,
+        title: game.title,
+        image: game.image
+      }),
+    });
+
+    const json = await res.json();
+    if (!res.ok) {
+      alert(json.error || "failed to add to cart");
+      return;
+    }
+
+    loadCartCount();
+    loadRecommendations();
+  }
+
+  async function markNotInterested(gameId) {
+    const res = await fetch("http://localhost:3000/recommendations/not-interested", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        uid: session.uid,
+        gameId
+      }),
+    });
+
+    const json = await res.json();
+    if (!res.ok) {
+      alert(json.error || "failed to mark as not interested");
+      return;
+    }
+
+    // Retirer immédiatement du state
+    setRecommendations(prev => {
+      const filtered = prev.filter(game => game.gameId !== gameId);
+      
+      // Charger de nouvelles recommandations pour remplacer celle retirée
+      setTimeout(() => {
+        loadRefreshedRecommendations();
+      }, 300);
+      
+      return filtered;
+    });
+  }
+
+  async function loadRefreshedRecommendations() {
+    try {
+      const res = await fetch(`http://localhost:3000/recommendations/refresh?uid=${session.uid}`);
+      const json = await res.json();
+      if (res.ok && json.length > 0) {
+        // Ajouter seulement 1 nouvelle recommandation aléatoire
+        setRecommendations(prev => [...prev, ...json]);
+      }
+    } catch (e) {
+      console.error("Failed to load refreshed recommendations");
+    }
   }
 
   return (
@@ -158,33 +261,39 @@ export default function Dashboard({ session, logout, onLeaderboard, onAdmin }) {
           )}
         </div>
 
-        <div style={{ display: "flex", gap: 10 }}>
-          {session.isAdmin && (
+<div className="top_actions">
+<button onClick={onCart} className="cart_btn" type="button" title="Cart">
+    🛒 {cartCount > 0 && <span className="badge">{cartCount}</span>}
+  </button>
+
+          <div style={{ display: "flex", gap: 10 }}>
+            {session.isAdmin && (
+              <button
+                onClick={onAdmin}
+                className="btn_secondary"
+                type="button"
+              >
+                Admin
+              </button>
+            )}
+
             <button
-              onClick={onAdmin}
+              onClick={onLeaderboard}
               className="btn_secondary"
               type="button"
             >
-              Admin
+              Leaderboard
             </button>
-          )}
 
-          <button
-            onClick={onLeaderboard}
-            className="btn_secondary"
-            type="button"
-          >
-            Leaderboard
-          </button>
-
-          <button onClick={logout} className="btn_secondary" type="button">
-            Logout
-          </button>
+            <button onClick={logout} className="btn_secondary" type="button">
+              Logout
+            </button>
+          </div>
         </div>
       </header>
 
-      <main className="grid grid_single">
-        <section className="panel">
+<main className="dash_cols">
+          <section className="panel">
           <div style={{ display: "flex", justifyContent: "space-between" }}>
             <h2 className="panel_title">Your games</h2>
 
@@ -327,8 +436,50 @@ export default function Dashboard({ session, logout, onLeaderboard, onAdmin }) {
               ))}
             </div>
           )}
-        </section>
-      </main>
+</section>
+
+          <section className="panel">
+            <h2 className="panel_title">Recommendations</h2>
+            
+            {recommendations.length === 0 ? (
+              <div className="muted">No recommendations available.</div>
+            ) : (
+              <div className="rec_grid">
+                {recommendations.map((game) => (
+                  <div key={game.gameId} className="rec_card">
+                    <div className="rec_img_rect">
+                      {game.image ? (
+                        <img src={game.image} alt={game.title} />
+                      ) : (
+                        <div className="rec_img_placeholder" />
+                      )}
+                    </div>
+                    <div className="rec_info">
+                      <div className="rec_title">{game.title}</div>
+                      <div className="rec_reason">{game.reason}</div>
+                      <div className="rec_actions">
+                        <button
+                          type="button"
+                          className="btn_primary"
+                          onClick={() => addToCart(game)}
+                        >
+                          Add to cart
+                        </button>
+                        <button
+                          type="button"
+                          className="btn_secondary"
+                          onClick={() => markNotInterested(game.gameId)}
+                        >
+                          Not interested
+                        </button>
+                      </div>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            )}
+          </section>
+        </main>
     </div>
   );
 }

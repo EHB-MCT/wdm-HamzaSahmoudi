@@ -3,29 +3,33 @@ import { useState, useEffect } from "react";
 export default function AdminDashboard({ session, logout }) {
   const [stats, setStats] = useState(null);
   const [users, setUsers] = useState(null);
+  const [orders, setOrders] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
 
-  useEffect(() => {
+useEffect(() => {
     async function fetchData() {
       try {
-        const [statsRes, usersRes] = await Promise.all([
+        const [statsRes, usersRes, ordersRes] = await Promise.all([
           fetch("http://localhost:3000/admin/stats?isAdmin=true"),
-          fetch("http://localhost:3000/admin/users?isAdmin=true")
+          fetch("http://localhost:3000/admin/users?isAdmin=true"),
+          fetch("http://localhost:3000/orders/admin/orders")
         ]);
 
-        if (!statsRes.ok || !usersRes.ok) {
+        if (!statsRes.ok || !usersRes.ok || !ordersRes.ok) {
           setError("Failed to load admin data");
           return;
         }
 
-        const [statsData, usersData] = await Promise.all([
+        const [statsData, usersData, ordersData] = await Promise.all([
           statsRes.json(),
-          usersRes.json()
+          usersRes.json(),
+          ordersRes.json()
         ]);
 
         setStats(statsData);
         setUsers(usersData);
+        setOrders(ordersData);
       } catch (err) {
         setError("Network error");
       } finally {
@@ -139,6 +143,55 @@ export default function AdminDashboard({ session, logout }) {
                 <span className="pill">{genre.totalHours}h</span>
               </div>
             ))}
+          </div>
+</section>
+
+        <section className="panel">
+          <h2 className="panel_title">Recent Orders</h2>
+          <div style={{ marginTop: 20 }}>
+            {orders && orders.length === 0 ? (
+              <div className="muted">No orders found.</div>
+            ) : (
+              orders?.map((order, index) => (
+                <div key={index} style={{ marginBottom: 20, padding: 16, border: "1px solid rgba(255, 255, 255, 0.1)", borderRadius: 8, backgroundColor: "rgba(255, 255, 255, 0.02)" }}>
+                  <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", marginBottom: 12 }}>
+                    <div>
+                      <div style={{ fontWeight: "bold", color: "#e9eaf2" }}>{order.name}</div>
+                      <div style={{ color: "#a6a8bd", fontSize: "0.9em" }}>{order.email}</div>
+                      <div style={{ color: "#a6a8bd", fontSize: "0.8em", marginTop: 4 }}>
+                        {new Date(order.createdAt).toLocaleDateString()} {new Date(order.createdAt).toLocaleTimeString()}
+                      </div>
+                    </div>
+                    <div style={{ textAlign: "right" }}>
+                      <div style={{ fontSize: "0.8em", color: "#a6a8bd", marginBottom: 4 }}>Steam Code</div>
+                      <div style={{ fontFamily: "monospace", fontSize: "0.9em", color: "#7c5cff" }}>{order.steamCode}</div>
+                    </div>
+                  </div>
+
+                  <div>
+                    <h4 style={{ margin: "10px 0 8px 0", fontSize: "0.9em", color: "#a6a8bd" }}>
+                      {order.items.length} {order.items.length === 1 ? "item" : "items"}:
+                    </h4>
+                    <div style={{ display: "grid", gap: 6 }}>
+                      {order.items.map((item, itemIndex) => (
+                        <div key={itemIndex} style={{ display: "flex", alignItems: "center", gap: 10, padding: 6, backgroundColor: "rgba(255, 255, 255, 0.05)", borderRadius: 4 }}>
+                          {item.image ? (
+                            <img 
+                              src={item.image} 
+                              alt={item.title}
+                              style={{ width: 40, height: 24, objectFit: "cover", borderRadius: 3 }}
+                            />
+                          ) : (
+                            <div style={{ width: 40, height: 24, backgroundColor: "rgba(255, 255, 255, 0.1)", borderRadius: 3 }} />
+                          )}
+                          <div style={{ flex: 1, fontSize: "0.9em", color: "#e9eaf2" }}>{item.title}</div>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                </div>
+              ))
+            )}
           </div>
         </section>
 

@@ -5,6 +5,7 @@ import Onboarding from "./pages/Onboarding.jsx";
 import Dashboard from "./pages/Dashboard.jsx";
 import Leaderboard from "./pages/Leaderboard.jsx";
 import AdminDashboard from "./pages/AdminDashboard.jsx";
+import Shop from "./pages/Shop.jsx";
 
 export default function App() {
   const [mode, setMode] = useState("login");
@@ -20,7 +21,8 @@ export default function App() {
   const [session, setSession] = useState(null);
   const [profile, setProfile] = useState(null);
 
-  const [view, setView] = useState("dashboard");
+const [view, setView] = useState("dashboard");
+  
 
   const [step, setStep] = useState(1);
   const [selectedGames, setSelectedGames] = useState([]);
@@ -132,12 +134,13 @@ export default function App() {
     }
   }
 
-  function logout() {
+function logout() {
     setSession(null);
     setProfile(null);
     setStep(1);
     setSelectedGames([]);
     setView("dashboard");
+    
   }
 
   if (!session) {
@@ -184,6 +187,10 @@ export default function App() {
     );
   }
 
+if (view === "shop") {
+    return <Shop session={session} onBack={() => setView("dashboard")} />;
+  }
+
   if (view === "leaderboard") {
     return <Leaderboard onBack={() => setView("dashboard")} />;
   }
@@ -212,13 +219,14 @@ export default function App() {
     );
   }
 
-  return (
+return (
     <Dashboard
       session={session}
       profile={profile}
       logout={logout}
       onLeaderboard={() => setView("leaderboard")}
       onAdmin={() => setView("admin-login")}
+      onCart={() => setView("shop")}
     />
   );
 }
