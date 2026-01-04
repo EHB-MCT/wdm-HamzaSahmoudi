@@ -147,3 +147,7 @@ docker compose down -v
 - Express.js framework: https://expressjs.com/
 - Mongoose ODM: https://mongoosejs.com/
 - AI Assistance - Opencode -> OpenCode.md
+- ChatGPT links:
+https://chatgpt.com/share/695af1dd-0ca4-8004-92c3-ada12a7b8e23
+https://chatgpt.com/share/695af370-e2b0-8004-b69d-1bc1ab1f0748
+https://chatgpt.com/share/695af3fd-618c-8004-83a3-f6dd0eaa36e9
