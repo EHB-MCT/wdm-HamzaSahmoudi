@@ -7,6 +7,7 @@ export default function AdminDashboard({ session, logout }) {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
   const [minHoursFilter, setMinHoursFilter] = useState("");
+  const [ordersFilter, setOrdersFilter] = useState("all");
 
 useEffect(() => {
     async function fetchData() {
@@ -205,43 +206,81 @@ useEffect(() => {
         <section className="panel">
           <h2 className="panel_title">All Users and Their Games</h2>
           
-          {/* User Filter by Total Hours */}
-          <div style={{ marginTop: 20, marginBottom: 20 }}>
-            <label style={{ color: "#e9eaf2", marginRight: 10, fontSize: "0.9em" }}>
-              Filter by total hours played:
-            </label>
-            <select 
-              value={minHoursFilter} 
-              onChange={(e) => setMinHoursFilter(e.target.value)}
-              style={{
-                padding: "8px 12px",
-                borderRadius: "6px",
-                border: "1px solid rgba(255, 255, 255, 0.2)",
-                backgroundColor: "rgba(255, 255, 255, 0.1)",
-                color: "#e9eaf2",
-                fontSize: "0.9em"
-              }}
-            >
-              <option value="">All users</option>
-              <option value="10">Users with 10+ hours</option>
-              <option value="50">Users with 50+ hours</option>
-              <option value="100">Users with 100+ hours</option>
-            </select>
+          
+          <div style={{ marginTop: 20, marginBottom: 20, display: "flex", gap: 20, flexWrap: "wrap" }}>
+            <div>
+              <label style={{ color: "#e9eaf2", marginRight: 10, fontSize: "0.9em" }}>
+                Filter by total hours:
+              </label>
+              <select 
+                value={minHoursFilter} 
+                onChange={(e) => setMinHoursFilter(e.target.value)}
+                style={{
+                  padding: "8px 12px",
+                  borderRadius: "6px",
+                  border: "1px solid rgba(255, 255, 255, 0.2)",
+                  backgroundColor: "rgba(255, 255, 255, 0.1)",
+                  color: "#e9eaf2",
+                  fontSize: "0.9em"
+                }}
+              >
+                <option value="">All users</option>
+                <option value="10">Users with 10+ hours</option>
+                <option value="50">Users with 50+ hours</option>
+                <option value="100">Users with 100+ hours</option>
+              </select>
+            </div>
+            
+            <div>
+              <label style={{ color: "#e9eaf2", marginRight: 10, fontSize: "0.9em" }}>
+                Filter by orders:
+              </label>
+              <select 
+                value={ordersFilter} 
+                onChange={(e) => setOrdersFilter(e.target.value)}
+                style={{
+                  padding: "8px 12px",
+                  borderRadius: "6px",
+                  border: "1px solid rgba(255, 255, 255, 0.2)",
+                  backgroundColor: "rgba(255, 255, 255, 0.1)",
+                  color: "#e9eaf2",
+                  fontSize: "0.9em"
+                }}
+              >
+                <option value="all">All users</option>
+                <option value="hasOrders">Users with orders</option>
+                <option value="noOrders">Users without orders</option>
+              </select>
+            </div>
           </div>
           
           <div style={{ marginTop: 20 }}>
             {users && users.length === 0 ? (
               <div className="muted">No users found.</div>
             ) : (
-              users?.map((user, index) => (
+              users?.filter(user => {
+                // Apply orders filter
+                if (ordersFilter === "hasOrders") {
+                  return user.totalOrders > 0;
+                } else if (ordersFilter === "noOrders") {
+                  return user.totalOrders === 0;
+                }
+                return true;
+              }).map((user, index) => (
                 <div key={index} style={{ marginBottom: 30, padding: 20, border: "1px solid rgba(255, 255, 255, 0.1)", borderRadius: 8, backgroundColor: "rgba(255, 255, 255, 0.02)" }}>
                   <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 15 }}>
                     <div>
                       <h3 style={{ margin: 0, color: "#e9eaf2" }}>{user.name}</h3>
                       <p style={{ margin: "5px 0", color: "#a6a8bd", fontSize: "0.9em" }}>{user.email}</p>
-                      <div style={{ display: "flex", gap: 15, marginTop: 8 }}>
+                      <div style={{ display: "flex", gap: 15, marginTop: 8, flexWrap: "wrap" }}>
                         <span className="pill">{user.totalGames} games</span>
                         <span className="pill" style={{ background: "rgba(124, 92, 255, 0.18)" }}>{user.totalHours}h total</span>
+                        <span className="pill" style={{ 
+                          background: user.totalOrders > 0 ? "rgba(76, 175, 80, 0.18)" : "rgba(244, 67, 54, 0.18)",
+                          color: user.totalOrders > 0 ? "#4CAF50" : "#F44336"
+                        }}>
+                          {user.totalOrders} order{user.totalOrders !== 1 ? 's' : ''}
+                        </span>
                       </div>
                     </div>
                   </div>
